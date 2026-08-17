@@ -5,6 +5,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   watch:
@@ -62,4 +63,15 @@ jobs:
           git push origin "$BRANCH_NAME"
 
           echo "branch=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
-          
+
+      - name: Create pull request
+        if: steps.changes.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \
+            --base "main" \
+            --head "${{ steps.publish.outputs.branch }}" \
+            --title "chore: update GTA 5 patch data" \
+            --body "A new GTA 5 patch was detected automatically"
+            
