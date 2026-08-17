@@ -1,0 +1,27 @@
+name: GTA 5 Patch Watcher - Watch
+
+on:
+  workflow_dispatch:
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run patch watcher
+        run: python watcher.py
+
+      - name: Show changes
+        run: git diff -- data/latest_patch.json
+      
