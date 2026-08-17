@@ -64,7 +64,7 @@ jobs:
           
           git commit -m "chore: update GTA 5 patch data"
 
-          git push origin "$BRANCH_NAME"
+          git push --force origin "$BRANCH_NAME"
 
           echo "branch=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
 
