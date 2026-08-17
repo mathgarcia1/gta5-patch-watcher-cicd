@@ -3,6 +3,9 @@ name: GTA 5 Patch Watcher - Watch
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   watch:
     runs-on: ubuntu-latest
@@ -40,3 +43,23 @@ jobs:
         run: |
           echo "A new patch update was detected!"
           git diff -- data/latest_patch.json
+
+      - name: Commit and push update
+        if: steps.changes.outputs.changed == 'true'
+        id: publish
+        run: |
+          BRANCH_NAME="bot/patch-update-${GITHUB_RUN_ID}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git checkout -b "$BRANCH_NAME"
+
+          git add data/latest_patch.json
+          
+          git commit -m "chore: update GTA 5 patch data"
+
+          git push origin "$BRANCH_NAME"
+
+          echo "branch=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
+          
