@@ -3,6 +3,10 @@ name: GTA 5 Patch Watcher - Watch
 on:
   workflow_dispatch:
 
+  schedule:
+    - cron: "0 9 * * *"
+      timezone: "America/Sao_Paulo"
+
 permissions:
   contents: write
   pull-requests: write
