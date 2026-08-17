@@ -45,6 +45,8 @@ def get_latest_patch(data):
         if patch["is_latest"]:
             return patch
 
+    raise ValueError("Latest patch not found")
+
 def save_latest_patch(patch):
     with open("data/latest_patch.json", "w", encoding="utf-8") as file:
         json.dump(
@@ -63,11 +65,20 @@ def create_snapshot(patch):
         "changelog_preview": patch["changelog_preview"]
     }
 
-html = fetch_page()
-params = extract_load_params(html)
-data = get_patches(params)
 
-latest_patch = get_latest_patch(data)
-snapshot = create_snapshot(latest_patch)
 
-save_latest_patch(snapshot)
+
+def main():
+    html = fetch_page()
+
+    params = extract_load_params(html)
+    data = get_patches(params)
+
+    latest_patch = get_latest_patch(data)
+    snapshot = create_snapshot(latest_patch)
+
+    save_latest_patch(snapshot)
+
+if __name__ == "__main__":
+    main()
+
