@@ -22,6 +22,21 @@ jobs:
       - name: Run patch watcher
         run: python watcher.py
 
-      - name: Show changes
-        run: git diff -- data/latest_patch.json
+      - name: Detect changes
+        id: changes
+        run: |
+          if git dff --quiet -- data/latest_patch.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
       
+      - name: No update detected
+        if: steps.changes.outputs.changed == 'false'
+        run: echo "No patch update detected."
+
+      - name: Update detected
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          echo "A new patch update was detected!"
+          git diff -- data/latest_patch.json
