@@ -11,6 +11,10 @@ permissions:
   contents: write
   pull-requests: write
 
+concurrency:
+  group: gta5-patch-watcher
+  cancel-in-progress: false
+
 jobs:
   watch:
     runs-on: ubuntu-latest
@@ -39,6 +43,26 @@ jobs:
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
       
+      - name: Check bot branch
+        if: steps.changes.outputs.changed == 'true'
+        id: bot_branch
+        run: |
+          if git ls-remote --exit-code --heads origin bot/patch-update > /dev/null 2>&1; then
+            git fetch --force origin \
+              bot/patch-update:refs/remotes/origin/bot/patch-update
+
+            if git diff --quiet origin/bot/patch-update -- data/latest_patch.json; then
+              echo "needs_publish=false" >> "$GITHUB_OUTPUT"
+              echo "Bot branch already contains the current patch."
+            else
+              echo "needs_publish=true" >> "$GITHUB_OUTPUT"
+              echo "Bot branch needs to be updated."
+            fi
+          else
+            echo "needs_publish=true" >> "$GITHUB_OUTPUT"
+            echo "Bot branch does not exist yet."
+          fi
+      
       - name: No update detected
         if: steps.changes.outputs.changed == 'false'
         run: echo "No patch update detected."
@@ -50,8 +74,9 @@ jobs:
           git diff -- data/latest_patch.json
 
       - name: Commit and push update
-        if: steps.changes.outputs.changed == 'true'
-        id: publish
+        if: >
+          steps.changes.outputs.changed == 'true' &&
+          steps.bot_branch.outputs.needs_publish == 'true'
         run: |
           BRANCH_NAME="bot/patch-update"
 
@@ -61,12 +86,9 @@ jobs:
           git checkout -B "$BRANCH_NAME"
 
           git add data/latest_patch.json
-          
           git commit -m "chore: update GTA 5 patch data"
 
           git push --force origin "$BRANCH_NAME"
-
-          echo "branch=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
 
       - name: Create pull request
         if: steps.changes.outputs.changed == 'true'
@@ -87,6 +109,5 @@ jobs:
               --title "chore: update GTA 5 patch data" \
               --body "A new GTA 5 patch was detected automatically"
           else
-            echo "An open pull request already exists. The branch was updated."
+            echo "An open pull request already exists."
           fi
-            
