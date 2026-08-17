@@ -53,12 +53,12 @@ jobs:
         if: steps.changes.outputs.changed == 'true'
         id: publish
         run: |
-          BRANCH_NAME="bot/patch-update-${GITHUB_RUN_ID}"
+          BRANCH_NAME="bot/patch-update"
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git checkout -b "$BRANCH_NAME"
+          git checkout -B "$BRANCH_NAME"
 
           git add data/latest_patch.json
           
