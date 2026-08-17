@@ -73,9 +73,20 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh pr create \
+          EXISTING_PR=$(gh pr list \
+            --head "bot/patch-update" \
             --base "main" \
-            --head "${{ steps.publish.outputs.branch }}" \
-            --title "chore: update GTA 5 patch data" \
-            --body "A new GTA 5 patch was detected automatically"
+            --state open \
+            --json number \
+            --jq 'length')
+
+          if [ "$EXISTING_PR" -eq 0 ]; then
+            gh pr create \
+              --base "main" \
+              --head "bot/patch-update" \
+              --title "chore: update GTA 5 patch data" \
+              --body "A new GTA 5 patch was detected automatically"
+          else
+            echo "An open pull request already exists. The branch was updated."
+          fi
             
